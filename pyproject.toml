@@ -17,5 +17,12 @@ classifiers = [
 license = "MIT"
 license-files = ["LICENSE"]
 
+dependencies = [
+    "pyzmq>=27.0.1"
+]
+
 [project.urls]
 Homepage = "https://github.com/JuanSobalvarro/RobeRT_client"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/robert-py"]
