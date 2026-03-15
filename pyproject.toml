@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "robert-py"
+version = "0.0.1"
+authors = [
+    { name = "Juan Sobalvarro", email = "sobalvarrog.juans@gmail.com" },
+]
+description = "A Python library to interact with RobeRT server."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+license = "MIT"
+license-files = ["LICENSE"]
+
+[project.urls]
+Homepage = "https://github.com/JuanSobalvarro/RobeRT_client"
