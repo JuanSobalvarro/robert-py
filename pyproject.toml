@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/JuanSobalvarro/RobeRT_client"
+Homepage = "https://github.com/JuanSobalvarro/robert-py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/robert-py"]
