@@ -8,6 +8,8 @@ class Commands:
     MOVEC = "MOVEC"
     PING = "PING"
     PINGR = "PINGR"
+    SETSPEED = "SETSPEED"
+    SETZONE = "SETZONE"
     EXIT = "EXIT"
 
 
@@ -34,3 +36,32 @@ class RobTarget:
 
     def __str__(self):
         return self.to_csv()
+
+
+@dataclass
+class RobJoint:
+    j1: float
+    j2: float
+    j3: float
+    j4: float
+    j5: float
+    j6: float
+
+    def to_list(self):
+        return [self.j1, self.j2, self.j3, self.j4, self.j5, self.j6]
+    
+    def to_csv(self):
+        return ",".join(str(value) for value in self.to_list())
+
+    def __str__(self):
+        return self.to_csv()
+    
+
+class Zone:
+    FINE = 0
+    Z1 = 1
+    Z5 = 2
+    Z10 = 3
+    Z15 = 4
+    Z20 = 5
+    Z30 = 6

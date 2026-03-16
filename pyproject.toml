@@ -23,6 +23,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/JuanSobalvarro/robert-py"
+Repository = "https://github.com/JuanSobalvarro/robert-py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/robert-py"]
+packages = ["src/robert"]
