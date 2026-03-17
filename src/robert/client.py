@@ -28,8 +28,8 @@ class RobeRTClient:
             response = self.socket.recv_string()
 
             return response
-        except zmq.Again:
-            return "FRONTEND ERROR: Timeout while waiting for response"
+        except Exception as e:
+            return f"FRONTEND ERROR: Timeout while waiting for response - {str(e)}"
 
     def _format_message(self, elements: List[Any]) -> str:
         """
