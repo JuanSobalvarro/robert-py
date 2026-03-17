@@ -3,7 +3,7 @@ import zmq
 from robert.protocol import Commands, RobTarget, Zone, RobJoint
 
 class RobeRTClient:
-    def __init__(self, endpoint: str, timeout: int = 5000):
+    def __init__(self, endpoint: str, timeout: int = 35000):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
         self.socket.setsockopt(zmq.RCVTIMEO, timeout)
