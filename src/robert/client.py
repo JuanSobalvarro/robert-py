@@ -15,21 +15,21 @@ class RobeRTClient:
             self.socket.connect(self.endpoint)
             print("[*] Connection established.")
         except Exception as e:
-            print(f"FRONTEND ERROR: Failed to connect to {self.endpoint} - {str(e)}")
+            print(f"API ERROR: Failed to connect to {self.endpoint} - {str(e)}")
             raise e
 
     def _request(self, message: str) -> str:
         try:
             self.socket.send_string(message)
         except Exception as e:
-            return f"FRONTEND ERROR: Failed to send message - {str(e)}"
+            return f"API ERROR: Failed to send message - {str(e)}"
             
         try:
             response = self.socket.recv_string()
 
             return response
         except Exception as e:
-            return f"FRONTEND ERROR: Timeout while waiting for response - {str(e)}"
+            return f"API ERROR: Timeout while waiting for response - {str(e)}"
 
     def _format_message(self, elements: List[Any]) -> str:
         """
@@ -40,37 +40,65 @@ class RobeRTClient:
         """
         return "|".join(str(element) for element in elements if element is not None)
     
+    def movel(self, target: RobTarget) -> str:
+        try:
+            response = self._request(self._format_message([Commands.MOVEL, target]))
+            return response
+        except Exception as e:
+            return f"API ERROR: Failed to send movel command - {str(e)}"
+        
+    def movec(self, target: RobTarget, target2: RobTarget) -> str:
+        try:
+            response = self._request(self._format_message([Commands.MOVEC, target, target2]))
+            return response
+        except Exception as e:
+            return f"API ERROR: Failed to send movec command - {str(e)}"
+
     def moveabsj(self, target: RobJoint) -> str:
         try:
             response = self._request(self._format_message([Commands.MOVEABSJ, target]))
             return response
         except Exception as e:
-            return f"FRONTEND ERROR: Failed to send moveabsj command - {str(e)}"
+            return f"API ERROR: Failed to send moveabsj command - {str(e)}"
 
     def movej(self, target: RobTarget) -> str:
         try:
             response = self._request(self._format_message([Commands.MOVEJ, target]))
             return response
         except Exception as e:
-            return f"FRONTEND ERROR: Failed to send movej command - {str(e)}"
+            return f"API ERROR: Failed to send movej command - {str(e)}"
+
+    def move_zero(self) -> str:
+        try:
+            response = self._request(self._format_message([Commands.ZERO]))
+            return response
+        except Exception as e:
+            return f"API ERROR: Failed to send zero command - {str(e)}"
 
     def set_speed(self, speed: float) -> str:
         try:
             response = self._request(self._format_message([Commands.SETSPEED, speed]))
             return response
         except Exception as e:
-            return f"FRONTEND ERROR: Failed to send setspeed command - {str(e)}"
+            return f"API ERROR: Failed to send setspeed command - {str(e)}"
 
     def set_zone(self, zone: Zone) -> str:
         try:
             response = self._request(self._format_message([Commands.SETZONE, zone]))
             return response
         except Exception as e:
-            return f"FRONTEND ERROR: Failed to send setzone command - {str(e)}"
+            return f"API ERROR: Failed to send setzone command - {str(e)}"
 
     def ping(self) -> str:
         try:
             response = self._request(self._format_message([Commands.PING]))
             return response
         except Exception as e:
-            return f"FRONTEND ERROR: Failed to send ping command - {str(e)}"
+            return f"API ERROR: Failed to send ping command - {str(e)}"
+
+    def ping_robot(self) -> str:
+        try:
+            response = self._request(self._format_message([Commands.PINGR]))
+            return response
+        except Exception as e:
+            return f"API ERROR: Failed to send pingr command - {str(e)}"

@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from enum import Enum
 
 
-class Commands:
+class Commands(Enum):
     MOVEL = "MOVEL"
     MOVEJ = "MOVEJ"
     MOVEC = "MOVEC"
@@ -11,8 +12,10 @@ class Commands:
     EXIT = "EXIT"
     PING = "PING"
     PINGR = "PINGR"
-    
+    ZERO = "ZERO"
 
+    def __str__(self):
+        return self.value
 
 @dataclass
 class RobTarget:
@@ -58,7 +61,7 @@ class RobJoint:
         return self.to_csv()
     
 
-class Zone:
+class Zone(Enum):
     FINE = 0
     Z1 = 1
     Z5 = 2
@@ -66,3 +69,6 @@ class Zone:
     Z15 = 4
     Z20 = 5
     Z30 = 6
+
+    def __str__(self):
+        return str(self.value)

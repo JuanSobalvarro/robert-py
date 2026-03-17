@@ -8,8 +8,10 @@ def main():
     client.connect()
 
     response = client.ping()
-
     print(f"Ping Response: {response}")
+
+    response = client.ping_robot()
+    print(f"Ping Robot Response: {response}")
 
     print(f"Sending setspeed at time: {time.strftime('%H:%M:%S', time.localtime())}")
     response = client.set_speed(150.0)
