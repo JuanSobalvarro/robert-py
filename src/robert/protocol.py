@@ -4,13 +4,14 @@ from dataclasses import dataclass
 class Commands:
     MOVEL = "MOVEL"
     MOVEJ = "MOVEJ"
-    MOVEABSJ = "MOVEABSJ"
     MOVEC = "MOVEC"
-    PING = "PING"
-    PINGR = "PINGR"
+    MOVEABSJ = "MOVEABSJ"
     SETSPEED = "SETSPEED"
     SETZONE = "SETZONE"
     EXIT = "EXIT"
+    PING = "PING"
+    PINGR = "PINGR"
+    
 
 
 @dataclass
