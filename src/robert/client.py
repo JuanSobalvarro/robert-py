@@ -1,6 +1,6 @@
-from typing import List, Any
 import zmq
-from robert.protocol import Commands, RobTarget, Zone, RobJoint
+from robert.generated import protocol_pb2 as pb 
+from robert.protocol import RobTarget, Zone, as_pb_robtarget
 
 class RobeRTClient:
     def __init__(self, endpoint: str, timeout: int = 35000):
@@ -18,87 +18,82 @@ class RobeRTClient:
             print(f"API ERROR: Failed to connect to {self.endpoint} - {str(e)}")
             raise e
 
-    def _request(self, message: str) -> str:
+    def _request(self, payload: bytes) -> str:
         try:
-            self.socket.send_string(message)
+            self.socket.send(payload)
         except Exception as e:
             return f"API ERROR: Failed to send message - {str(e)}"
             
         try:
-            response = self.socket.recv_string()
-
+            response = self.socket.recv().decode('utf-8')
             return response
         except Exception as e:
             return f"API ERROR: Timeout while waiting for response - {str(e)}"
 
-    def _format_message(self, elements: List[Any]) -> str:
-        """
-        This method formats a list of elements into a string message that can be sent to the server. in the format of
-        "e1|e2|...|en" where e1, e2, ..., en are the string representations of the elements in the list. Always starting with the command as the first element. 
-        For example, if the command is "MOVEJ" and the target is a RobTarget object, the message would be "MOVEJ|target"
-        * Important: Each element should have a __str__ method that returns a string representation of the element.
-        """
-        return "|".join(str(element) for element in elements if element is not None)
-    
-    def movel(self, target: RobTarget) -> str:
+    def movel(self, target: RobTarget | pb.RobTarget) -> str:
         try:
-            response = self._request(self._format_message([Commands.MOVEL, target]))
-            return response
+            req = pb.ClientRequest(command=pb.MOVEL, target=as_pb_robtarget(target))
+            return self._request(req.SerializeToString())
         except Exception as e:
             return f"API ERROR: Failed to send movel command - {str(e)}"
         
-    def movec(self, target: RobTarget, target2: RobTarget) -> str:
+    def movec(self, target: RobTarget | pb.RobTarget, target2: RobTarget | pb.RobTarget) -> str:
         try:
-            response = self._request(self._format_message([Commands.MOVEC, target, target2]))
-            return response
+            req = pb.ClientRequest(
+                command=pb.MOVEC,
+                target=as_pb_robtarget(target),
+                extra_target=as_pb_robtarget(target2),
+            )
+            return self._request(req.SerializeToString())
         except Exception as e:
             return f"API ERROR: Failed to send movec command - {str(e)}"
 
-    def moveabsj(self, target: RobJoint) -> str:
+    def moveabsj(self, joint_target: pb.JointTarget) -> str:
         try:
-            response = self._request(self._format_message([Commands.MOVEABSJ, target]))
-            return response
+            req = pb.ClientRequest(command=pb.MOVEABSJ, joint_target=joint_target)
+            return self._request(req.SerializeToString())
         except Exception as e:
             return f"API ERROR: Failed to send moveabsj command - {str(e)}"
 
-    def movej(self, target: RobTarget) -> str:
+    def movej(self, target: RobTarget | pb.RobTarget) -> str:
         try:
-            response = self._request(self._format_message([Commands.MOVEJ, target]))
-            return response
+            req = pb.ClientRequest(command=pb.MOVEJ, target=as_pb_robtarget(target))
+            return self._request(req.SerializeToString())
         except Exception as e:
             return f"API ERROR: Failed to send movej command - {str(e)}"
 
     def move_zero(self) -> str:
         try:
-            response = self._request(self._format_message([Commands.ZERO]))
-            return response
+            req = pb.ClientRequest(command=pb.ZERO)
+            return self._request(req.SerializeToString())
         except Exception as e:
             return f"API ERROR: Failed to send zero command - {str(e)}"
 
     def set_speed(self, speed: float) -> str:
         try:
-            response = self._request(self._format_message([Commands.SETSPEED, speed]))
-            return response
+            req = pb.ClientRequest(command=pb.SETSPEED, speed=speed)
+            return self._request(req.SerializeToString())
         except Exception as e:
             return f"API ERROR: Failed to send setspeed command - {str(e)}"
 
-    def set_zone(self, zone: Zone) -> str:
+    def set_zone(self, zone: Zone | pb.Zone | str) -> str:
         try:
-            response = self._request(self._format_message([Commands.SETZONE, zone]))
-            return response
+            zone_value = zone.name if isinstance(zone, Zone) else zone
+            req = pb.ClientRequest(command=pb.SETZONE, zone=zone_value)
+            return self._request(req.SerializeToString())
         except Exception as e:
             return f"API ERROR: Failed to send setzone command - {str(e)}"
 
     def ping(self) -> str:
         try:
-            response = self._request(self._format_message([Commands.PING]))
-            return response
+            req = pb.ClientRequest(command=pb.PING)
+            return self._request(req.SerializeToString())
         except Exception as e:
             return f"API ERROR: Failed to send ping command - {str(e)}"
 
     def ping_robot(self) -> str:
         try:
-            response = self._request(self._format_message([Commands.PINGR]))
-            return response
+            req = pb.ClientRequest(command=pb.PINGR)
+            return self._request(req.SerializeToString())
         except Exception as e:
             return f"API ERROR: Failed to send pingr command - {str(e)}"
