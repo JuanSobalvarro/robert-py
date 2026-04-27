@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "robert-py"
-version = "0.0.1"
+version = "1.0.0"
 authors = [
     { name = "Juan Sobalvarro", email = "sobalvarrog.juans@gmail.com" },
 ]
@@ -18,7 +18,13 @@ license = "MIT"
 license-files = ["LICENSE"]
 
 dependencies = [
-    "pyzmq>=27.0.1"
+    "pyzmq>=27.0.1",
+    "protobuf>=6.33.6"
+]
+
+[project.optional-dependencies]
+dev = [
+    "grpcio-tools" # compilation of proto files
 ]
 
 [project.urls]
