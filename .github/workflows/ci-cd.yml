@@ -1,15 +1,16 @@
 name: Publish Package
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout Code
@@ -30,3 +31,8 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
