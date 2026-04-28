@@ -14,6 +14,18 @@ class Zone(IntEnum):
     Z30 = pb.Z30
 
 
+class OpMode(IntEnum):
+    OP_UNDEF = pb.OP_UNDEF
+    OP_AUTO = pb.OP_AUTO
+    OP_MAN_PROG = pb.OP_MAN_PROG
+    OP_MAN_TEST = pb.OP_MAN_TEST
+
+
+class ResponseStatus(IntEnum):
+    SUCCESS = pb.SUCCESS
+    ERROR = pb.ERROR
+
+
 @dataclass
 class Position:
     x: float
@@ -100,6 +112,15 @@ class RobTarget:
             robconf=self.robconf.to_pb(),
             extax=self.extax.to_pb(),
         )
+    
+    @classmethod
+    def from_pb(cls, pb_target: pb.RobTarget) -> "RobTarget":
+        return cls(
+            trans=Position(x=pb_target.trans.x, y=pb_target.trans.y, z=pb_target.trans.z),
+            rot=Orientation(q1=pb_target.rot.q1, q2=pb_target.rot.q2, q3=pb_target.rot.q3, q4=pb_target.rot.q4),
+            robconf=ConfData(cf1=pb_target.robconf.cf1, cf4=pb_target.robconf.cf4, cf6=pb_target.robconf.cf6, cfx=pb_target.robconf.cfx),
+            extax=ExtJoint(eax_a=pb_target.extax.eax_a, eax_b=pb_target.extax.eax_b, eax_c=pb_target.extax.eax_c, eax_d=pb_target.extax.eax_d, eax_e=pb_target.extax.eax_e, eax_f=pb_target.extax.eax_f),
+        )
 
 
 @dataclass
@@ -111,6 +132,72 @@ class JointTarget:
         return pb.JointTarget(
             robjoint=self.robjoint.to_pb(),
             extjoint=self.extjoint.to_pb(),
+        )
+    
+    @classmethod
+    def from_pb(cls, pb_joint_target: pb.JointTarget) -> "JointTarget":
+        return cls(
+            robjoint=RobJoint(
+                rax_1=pb_joint_target.robjoint.rax_1,
+                rax_2=pb_joint_target.robjoint.rax_2,
+                rax_3=pb_joint_target.robjoint.rax_3,
+                rax_4=pb_joint_target.robjoint.rax_4,
+                rax_5=pb_joint_target.robjoint.rax_5,
+                rax_6=pb_joint_target.robjoint.rax_6,
+            ),
+            extjoint=ExtJoint(
+                eax_a=pb_joint_target.extjoint.eax_a,
+                eax_b=pb_joint_target.extjoint.eax_b,
+                eax_c=pb_joint_target.extjoint.eax_c,
+                eax_d=pb_joint_target.extjoint.eax_d,
+                eax_e=pb_joint_target.extjoint.eax_e,
+                eax_f=pb_joint_target.extjoint.eax_f,
+            )
+        )
+    
+
+@dataclass
+class RobotStatus:
+    op_mode: OpMode
+    speed_override: float
+    current_speed: float
+    current_zone: Zone
+    current_target: RobTarget
+    current_joint_target: JointTarget
+    robot_time: str
+    robot_date: str
+
+    @classmethod
+    def from_pb(cls, pb_status: pb.RobotStatus) -> "RobotStatus":
+        return cls(
+            op_mode=OpMode(pb_status.op_mode),
+            speed_override=pb_status.speed_override,
+            current_speed=pb_status.current_speed,
+            current_zone=Zone(pb_status.current_zone),
+            current_target=RobTarget.from_pb(pb_status.current_target),
+            current_joint_target=JointTarget.from_pb(pb_status.current_joint_target),
+            robot_time=pb_status.robot_time,
+            robot_date=pb_status.robot_date,
+        )
+
+
+@dataclass
+class ServerResponse:
+    status: ResponseStatus
+    message: str
+    robot_status: RobotStatus | None = None
+
+    @classmethod
+    def from_pb(cls, pb_response: pb.ServerResponse) -> "ServerResponse":
+        status_obj = None
+        # check if has robot_status field before trying to parse it
+        if pb_response.HasField("robot_status"):
+            status_obj = RobotStatus.from_pb(pb_response.robot_status)
+            
+        return cls(
+            status=ResponseStatus(pb_response.status),
+            message=pb_response.message,
+            robot_status=status_obj
         )
 
 
