@@ -18,6 +18,7 @@ class CommandType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     MOVEABSJ: _ClassVar[CommandType]
     SETSPEED: _ClassVar[CommandType]
     SETZONE: _ClassVar[CommandType]
+    GETSTATUS: _ClassVar[CommandType]
 
 class Zone(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -28,6 +29,13 @@ class Zone(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     Z15: _ClassVar[Zone]
     Z20: _ClassVar[Zone]
     Z30: _ClassVar[Zone]
+
+class OpMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    OP_UNDEF: _ClassVar[OpMode]
+    OP_AUTO: _ClassVar[OpMode]
+    OP_MAN_PROG: _ClassVar[OpMode]
+    OP_MAN_TEST: _ClassVar[OpMode]
 
 class ResponseStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -43,6 +51,7 @@ MOVEC: CommandType
 MOVEABSJ: CommandType
 SETSPEED: CommandType
 SETZONE: CommandType
+GETSTATUS: CommandType
 FINE: Zone
 Z1: Zone
 Z5: Zone
@@ -50,6 +59,10 @@ Z10: Zone
 Z15: Zone
 Z20: Zone
 Z30: Zone
+OP_UNDEF: OpMode
+OP_AUTO: OpMode
+OP_MAN_PROG: OpMode
+OP_MAN_TEST: OpMode
 SUCCESS: ResponseStatus
 ERROR: ResponseStatus
 
@@ -155,10 +168,32 @@ class ClientRequest(_message.Message):
     zone: Zone
     def __init__(self, command: _Optional[_Union[CommandType, str]] = ..., target: _Optional[_Union[RobTarget, _Mapping]] = ..., extra_target: _Optional[_Union[RobTarget, _Mapping]] = ..., joint_target: _Optional[_Union[JointTarget, _Mapping]] = ..., speed: _Optional[float] = ..., zone: _Optional[_Union[Zone, str]] = ...) -> None: ...
 
+class RobotStatus(_message.Message):
+    __slots__ = ("op_mode", "speed_override", "current_speed", "current_zone", "current_target", "current_joint_target", "robot_time", "robot_date")
+    OP_MODE_FIELD_NUMBER: _ClassVar[int]
+    SPEED_OVERRIDE_FIELD_NUMBER: _ClassVar[int]
+    CURRENT_SPEED_FIELD_NUMBER: _ClassVar[int]
+    CURRENT_ZONE_FIELD_NUMBER: _ClassVar[int]
+    CURRENT_TARGET_FIELD_NUMBER: _ClassVar[int]
+    CURRENT_JOINT_TARGET_FIELD_NUMBER: _ClassVar[int]
+    ROBOT_TIME_FIELD_NUMBER: _ClassVar[int]
+    ROBOT_DATE_FIELD_NUMBER: _ClassVar[int]
+    op_mode: OpMode
+    speed_override: float
+    current_speed: float
+    current_zone: Zone
+    current_target: RobTarget
+    current_joint_target: JointTarget
+    robot_time: str
+    robot_date: str
+    def __init__(self, op_mode: _Optional[_Union[OpMode, str]] = ..., speed_override: _Optional[float] = ..., current_speed: _Optional[float] = ..., current_zone: _Optional[_Union[Zone, str]] = ..., current_target: _Optional[_Union[RobTarget, _Mapping]] = ..., current_joint_target: _Optional[_Union[JointTarget, _Mapping]] = ..., robot_time: _Optional[str] = ..., robot_date: _Optional[str] = ...) -> None: ...
+
 class ServerResponse(_message.Message):
-    __slots__ = ("status", "message")
+    __slots__ = ("status", "message", "robot_status")
     STATUS_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    ROBOT_STATUS_FIELD_NUMBER: _ClassVar[int]
     status: ResponseStatus
     message: str
-    def __init__(self, status: _Optional[_Union[ResponseStatus, str]] = ..., message: _Optional[str] = ...) -> None: ...
+    robot_status: RobotStatus
+    def __init__(self, status: _Optional[_Union[ResponseStatus, str]] = ..., message: _Optional[str] = ..., robot_status: _Optional[_Union[RobotStatus, _Mapping]] = ...) -> None: ...
