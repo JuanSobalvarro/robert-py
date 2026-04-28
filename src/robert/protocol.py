@@ -209,3 +209,13 @@ def as_pb_robtarget(target: RobTarget | pb.RobTarget) -> pb.RobTarget:
         return target.to_pb()
 
     raise TypeError(f"target must be RobTarget or pb.RobTarget, got {type(target)!r}")
+
+
+def as_pb_jointtarget(target: JointTarget | pb.JointTarget) -> pb.JointTarget:
+    if isinstance(target, pb.JointTarget):
+        return target
+
+    if isinstance(target, JointTarget):
+        return target.to_pb()
+
+    raise TypeError(f"target must be JointTarget or pb.JointTarget, got {type(target)!r}")

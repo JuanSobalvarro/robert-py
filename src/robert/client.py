@@ -1,6 +1,6 @@
 import zmq
 from robert.generated import protocol_pb2 as pb 
-from robert.protocol import RobTarget, Zone, as_pb_robtarget, ServerResponse
+from robert.protocol import JointTarget, RobTarget, Zone, as_pb_jointtarget, as_pb_robtarget, ServerResponse
 
 from typing import Callable
 
@@ -58,8 +58,8 @@ class RobeRTClient:
         return self._request(req.SerializeToString())
 
     @server_response
-    def moveabsj(self, joint_target: pb.JointTarget) -> bytes:
-        req = pb.ClientRequest(command=pb.CommandType.MOVEABSJ, joint_target=joint_target)
+    def moveabsj(self, joint_target: JointTarget | pb.JointTarget) -> bytes:
+        req = pb.ClientRequest(command=pb.CommandType.MOVEABSJ, joint_target=as_pb_jointtarget(joint_target))
         return self._request(req.SerializeToString())
 
     @server_response
