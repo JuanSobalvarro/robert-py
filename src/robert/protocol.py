@@ -25,6 +25,12 @@ class ResponseStatus(IntEnum):
     SUCCESS = pb.SUCCESS
     ERROR = pb.ERROR
 
+class TaskStatus(IntEnum):
+    TASK_UNKNOWN = pb.TASK_UNKNOWN
+    TASK_PENDING = pb.TASK_PENDING
+    TASK_IN_PROGRESS = pb.TASK_IN_PROGRESS
+    TASK_COMPLETED = pb.TASK_COMPLETED
+    TASK_FAILED = pb.TASK_FAILED
 
 @dataclass
 class Position:
@@ -34,7 +40,7 @@ class Position:
 
     def to_pb(self) -> pb.Position:
         return pb.Position(x=self.x, y=self.y, z=self.z)
-    
+
 
 @dataclass
 class Orientation:
@@ -112,7 +118,7 @@ class RobTarget:
             robconf=self.robconf.to_pb(),
             extax=self.extax.to_pb(),
         )
-    
+
     @classmethod
     def from_pb(cls, pb_target: pb.RobTarget) -> "RobTarget":
         return cls(
@@ -133,7 +139,7 @@ class JointTarget:
             robjoint=self.robjoint.to_pb(),
             extjoint=self.extjoint.to_pb(),
         )
-    
+
     @classmethod
     def from_pb(cls, pb_joint_target: pb.JointTarget) -> "JointTarget":
         return cls(
@@ -154,7 +160,7 @@ class JointTarget:
                 eax_f=pb_joint_target.extjoint.eax_f,
             )
         )
-    
+
 
 @dataclass
 class RobotStatus:
@@ -184,19 +190,32 @@ class RobotStatus:
 @dataclass
 class ServerResponse:
     status: ResponseStatus
-    message: str
+    task_status: TaskStatus
+    task_id: int | None = None
+    error_message: str | None = None
+    text_payload: str | None = None
     robot_status: RobotStatus | None = None
 
     @classmethod
     def from_pb(cls, pb_response: pb.ServerResponse) -> "ServerResponse":
         status_obj = None
-        # check if has robot_status field before trying to parse it
-        if pb_response.HasField("robot_status"):
+        text_content = None
+
+        payload_type = pb_response.WhichOneof("payload")
+
+        if payload_type == "robot_status":
             status_obj = RobotStatus.from_pb(pb_response.robot_status)
-            
+        elif payload_type == "text_payload":
+            text_content = pb_response.text_payload
+
+        err_msg = pb_response.error_message if pb_response.error_message else None
+
         return cls(
             status=ResponseStatus(pb_response.status),
-            message=pb_response.message,
+            task_status=TaskStatus(pb_response.task_status),
+            task_id=pb_response.task_id if pb_response.task_id != 0 else None,
+            error_message=err_msg,
+            text_payload=text_content,
             robot_status=status_obj
         )
 

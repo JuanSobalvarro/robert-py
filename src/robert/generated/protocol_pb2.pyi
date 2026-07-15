@@ -19,6 +19,7 @@ class CommandType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SETSPEED: _ClassVar[CommandType]
     SETZONE: _ClassVar[CommandType]
     GETSTATUS: _ClassVar[CommandType]
+    CHECKTASK: _ClassVar[CommandType]
 
 class Zone(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -41,6 +42,14 @@ class ResponseStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     SUCCESS: _ClassVar[ResponseStatus]
     ERROR: _ClassVar[ResponseStatus]
+
+class TaskStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    TASK_UNKNOWN: _ClassVar[TaskStatus]
+    TASK_PENDING: _ClassVar[TaskStatus]
+    TASK_IN_PROGRESS: _ClassVar[TaskStatus]
+    TASK_COMPLETED: _ClassVar[TaskStatus]
+    TASK_FAILED: _ClassVar[TaskStatus]
 PING: CommandType
 PINGR: CommandType
 ZERO: CommandType
@@ -52,6 +61,7 @@ MOVEABSJ: CommandType
 SETSPEED: CommandType
 SETZONE: CommandType
 GETSTATUS: CommandType
+CHECKTASK: CommandType
 FINE: Zone
 Z1: Zone
 Z5: Zone
@@ -65,6 +75,11 @@ OP_MAN_PROG: OpMode
 OP_MAN_TEST: OpMode
 SUCCESS: ResponseStatus
 ERROR: ResponseStatus
+TASK_UNKNOWN: TaskStatus
+TASK_PENDING: TaskStatus
+TASK_IN_PROGRESS: TaskStatus
+TASK_COMPLETED: TaskStatus
+TASK_FAILED: TaskStatus
 
 class Position(_message.Message):
     __slots__ = ("x", "y", "z")
@@ -153,20 +168,22 @@ class JointTarget(_message.Message):
     def __init__(self, robjoint: _Optional[_Union[RobJoint, _Mapping]] = ..., extjoint: _Optional[_Union[ExtJoint, _Mapping]] = ...) -> None: ...
 
 class ClientRequest(_message.Message):
-    __slots__ = ("command", "target", "extra_target", "joint_target", "speed", "zone")
+    __slots__ = ("command", "target", "extra_target", "joint_target", "task_id", "speed", "zone")
     COMMAND_FIELD_NUMBER: _ClassVar[int]
     TARGET_FIELD_NUMBER: _ClassVar[int]
     EXTRA_TARGET_FIELD_NUMBER: _ClassVar[int]
     JOINT_TARGET_FIELD_NUMBER: _ClassVar[int]
+    TASK_ID_FIELD_NUMBER: _ClassVar[int]
     SPEED_FIELD_NUMBER: _ClassVar[int]
     ZONE_FIELD_NUMBER: _ClassVar[int]
     command: CommandType
     target: RobTarget
     extra_target: RobTarget
     joint_target: JointTarget
+    task_id: int
     speed: float
     zone: Zone
-    def __init__(self, command: _Optional[_Union[CommandType, str]] = ..., target: _Optional[_Union[RobTarget, _Mapping]] = ..., extra_target: _Optional[_Union[RobTarget, _Mapping]] = ..., joint_target: _Optional[_Union[JointTarget, _Mapping]] = ..., speed: _Optional[float] = ..., zone: _Optional[_Union[Zone, str]] = ...) -> None: ...
+    def __init__(self, command: _Optional[_Union[CommandType, str]] = ..., target: _Optional[_Union[RobTarget, _Mapping]] = ..., extra_target: _Optional[_Union[RobTarget, _Mapping]] = ..., joint_target: _Optional[_Union[JointTarget, _Mapping]] = ..., task_id: _Optional[int] = ..., speed: _Optional[float] = ..., zone: _Optional[_Union[Zone, str]] = ...) -> None: ...
 
 class RobotStatus(_message.Message):
     __slots__ = ("op_mode", "speed_override", "current_speed", "current_zone", "current_target", "current_joint_target", "robot_time", "robot_date")
@@ -189,11 +206,17 @@ class RobotStatus(_message.Message):
     def __init__(self, op_mode: _Optional[_Union[OpMode, str]] = ..., speed_override: _Optional[float] = ..., current_speed: _Optional[float] = ..., current_zone: _Optional[_Union[Zone, str]] = ..., current_target: _Optional[_Union[RobTarget, _Mapping]] = ..., current_joint_target: _Optional[_Union[JointTarget, _Mapping]] = ..., robot_time: _Optional[str] = ..., robot_date: _Optional[str] = ...) -> None: ...
 
 class ServerResponse(_message.Message):
-    __slots__ = ("status", "message", "robot_status")
+    __slots__ = ("status", "error_message", "task_id", "task_status", "text_payload", "robot_status")
     STATUS_FIELD_NUMBER: _ClassVar[int]
-    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    ERROR_MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    TASK_ID_FIELD_NUMBER: _ClassVar[int]
+    TASK_STATUS_FIELD_NUMBER: _ClassVar[int]
+    TEXT_PAYLOAD_FIELD_NUMBER: _ClassVar[int]
     ROBOT_STATUS_FIELD_NUMBER: _ClassVar[int]
     status: ResponseStatus
-    message: str
+    error_message: str
+    task_id: int
+    task_status: TaskStatus
+    text_payload: str
     robot_status: RobotStatus
-    def __init__(self, status: _Optional[_Union[ResponseStatus, str]] = ..., message: _Optional[str] = ..., robot_status: _Optional[_Union[RobotStatus, _Mapping]] = ...) -> None: ...
+    def __init__(self, status: _Optional[_Union[ResponseStatus, str]] = ..., error_message: _Optional[str] = ..., task_id: _Optional[int] = ..., task_status: _Optional[_Union[TaskStatus, str]] = ..., text_payload: _Optional[str] = ..., robot_status: _Optional[_Union[RobotStatus, _Mapping]] = ...) -> None: ...
