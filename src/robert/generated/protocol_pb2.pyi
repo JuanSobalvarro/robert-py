@@ -20,6 +20,10 @@ class CommandType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SETZONE: _ClassVar[CommandType]
     GETSTATUS: _ClassVar[CommandType]
     CHECKTASK: _ClassVar[CommandType]
+    LOGIN: _ClassVar[CommandType]
+    LOGOUT: _ClassVar[CommandType]
+    ACQUIRE: _ClassVar[CommandType]
+    RELEASE: _ClassVar[CommandType]
 
 class Zone(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -42,6 +46,7 @@ class ResponseStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     SUCCESS: _ClassVar[ResponseStatus]
     ERROR: _ClassVar[ResponseStatus]
+    WARNING: _ClassVar[ResponseStatus]
 
 class TaskStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -62,6 +67,10 @@ SETSPEED: CommandType
 SETZONE: CommandType
 GETSTATUS: CommandType
 CHECKTASK: CommandType
+LOGIN: CommandType
+LOGOUT: CommandType
+ACQUIRE: CommandType
+RELEASE: CommandType
 FINE: Zone
 Z1: Zone
 Z5: Zone
@@ -75,6 +84,7 @@ OP_MAN_PROG: OpMode
 OP_MAN_TEST: OpMode
 SUCCESS: ResponseStatus
 ERROR: ResponseStatus
+WARNING: ResponseStatus
 TASK_UNKNOWN: TaskStatus
 TASK_PENDING: TaskStatus
 TASK_IN_PROGRESS: TaskStatus
@@ -168,7 +178,7 @@ class JointTarget(_message.Message):
     def __init__(self, robjoint: _Optional[_Union[RobJoint, _Mapping]] = ..., extjoint: _Optional[_Union[ExtJoint, _Mapping]] = ...) -> None: ...
 
 class ClientRequest(_message.Message):
-    __slots__ = ("command", "target", "extra_target", "joint_target", "task_id", "speed", "zone")
+    __slots__ = ("command", "target", "extra_target", "joint_target", "task_id", "speed", "zone", "session_token", "username", "password")
     COMMAND_FIELD_NUMBER: _ClassVar[int]
     TARGET_FIELD_NUMBER: _ClassVar[int]
     EXTRA_TARGET_FIELD_NUMBER: _ClassVar[int]
@@ -176,6 +186,9 @@ class ClientRequest(_message.Message):
     TASK_ID_FIELD_NUMBER: _ClassVar[int]
     SPEED_FIELD_NUMBER: _ClassVar[int]
     ZONE_FIELD_NUMBER: _ClassVar[int]
+    SESSION_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    USERNAME_FIELD_NUMBER: _ClassVar[int]
+    PASSWORD_FIELD_NUMBER: _ClassVar[int]
     command: CommandType
     target: RobTarget
     extra_target: RobTarget
@@ -183,7 +196,10 @@ class ClientRequest(_message.Message):
     task_id: int
     speed: float
     zone: Zone
-    def __init__(self, command: _Optional[_Union[CommandType, str]] = ..., target: _Optional[_Union[RobTarget, _Mapping]] = ..., extra_target: _Optional[_Union[RobTarget, _Mapping]] = ..., joint_target: _Optional[_Union[JointTarget, _Mapping]] = ..., task_id: _Optional[int] = ..., speed: _Optional[float] = ..., zone: _Optional[_Union[Zone, str]] = ...) -> None: ...
+    session_token: str
+    username: str
+    password: str
+    def __init__(self, command: _Optional[_Union[CommandType, str]] = ..., target: _Optional[_Union[RobTarget, _Mapping]] = ..., extra_target: _Optional[_Union[RobTarget, _Mapping]] = ..., joint_target: _Optional[_Union[JointTarget, _Mapping]] = ..., task_id: _Optional[int] = ..., speed: _Optional[float] = ..., zone: _Optional[_Union[Zone, str]] = ..., session_token: _Optional[str] = ..., username: _Optional[str] = ..., password: _Optional[str] = ...) -> None: ...
 
 class RobotStatus(_message.Message):
     __slots__ = ("op_mode", "speed_override", "current_speed", "current_zone", "current_target", "current_joint_target", "robot_time", "robot_date")
