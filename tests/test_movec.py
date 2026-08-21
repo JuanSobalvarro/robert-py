@@ -1,5 +1,5 @@
 from robert.client import RobeRTClient
-from robert.protocol import RobTarget, RobJoint, Zone
+from robert.protocol import RobTarget, Zone, Position, Orientation, ConfData, ExtJoint
 
 
 def draw_circle(client: RobeRTClient, center_x: float, center_y: float, z: float, radius: float):
@@ -8,13 +8,38 @@ def draw_circle(client: RobeRTClient, center_x: float, center_y: float, z: float
     mid_point_down = (center_x, center_y - radius, z)
     left_point = (center_x - radius, center_y, z)
 
-    client.movej(RobTarget(*init_point, 0.0, 0.0, -1.0, 0.0, 0, 0, -1, 0))
+    client.movej(RobTarget(
+        trans=Position(*init_point),
+        rot=Orientation(0.0, 0.0, -1.0, 0.0),
+        robconf=ConfData(0, 0, -1, 0),
+        extax=ExtJoint(9e9, 9e9, 9e9, 9e9, 9e9, 9e9)
+    ))
 
     # upper arc
-    client.movec(RobTarget(*mid_point_up, 0.0, 0.0, -1.0, 0.0, 0, 0, -1, 0), RobTarget(*left_point, 0.0, 0.0, -1.0, 0.0, 0, 0, -1, 0))
+    client.movec(RobTarget(
+        trans=Position(*mid_point_up),
+        rot=Orientation(0.0, 0.0, -1.0, 0.0),
+        robconf=ConfData(0, 0, -1, 0),
+        extax=ExtJoint(9e9, 9e9, 9e9, 9e9, 9e9, 9e9)
+    ), RobTarget(
+        trans=Position(*left_point),
+        rot=Orientation(0.0, 0.0, -1.0, 0.0),
+        robconf=ConfData(0, 0, -1, 0),
+        extax=ExtJoint(9e9, 9e9, 9e9, 9e9, 9e9, 9e9)
+    ))
 
     # lower arc
-    client.movec(RobTarget(*mid_point_down, 0.0, 0.0, -1.0, 0.0, 0, 0, -1, 0), RobTarget(*init_point, 0.0, 0.0, -1.0, 0.0, 0, 0, -1, 0))
+    client.movec(RobTarget(
+        trans=Position(*mid_point_down),
+        rot=Orientation(0.0, 0.0, -1.0, 0.0),
+        robconf=ConfData(0, 0, -1, 0),
+        extax=ExtJoint(9e9, 9e9, 9e9, 9e9, 9e9, 9e9)
+    ), RobTarget(
+        trans=Position(*init_point),
+        rot=Orientation(0.0, 0.0, -1.0, 0.0),
+        robconf=ConfData(0, 0, -1, 0),
+        extax=ExtJoint(9e9, 9e9, 9e9, 9e9, 9e9, 9e9)
+    ))
 
 def main():
 
@@ -34,7 +59,12 @@ def main():
     response = client.move_zero()
     print(f"Move Zero Response: {response}")
 
-    client.movej(RobTarget(500.0, 0.0, 450.0, 0.0, 0.0, -1.0, 0.0, 0, 0, -1, 0))
+    client.movej(RobTarget(
+        trans=Position(450.0, 0.0, 450.0),
+        rot=Orientation(0.0, 0.0, -1.0, 0.0),
+        robconf=ConfData(0, 0, -1, 0),
+        extax=ExtJoint(9e9, 9e9, 9e9, 9e9, 9e9, 9e9)
+    ))
 
     draw_circle(client, center_x=500.0, center_y=0.0, z=400.0, radius=100.0)
 

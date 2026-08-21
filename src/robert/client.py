@@ -1,6 +1,6 @@
 import zmq
 from robert.generated import protocol_pb2 as pb
-from robert.protocol import JointTarget, RobTarget, Zone, as_pb_jointtarget, as_pb_robtarget, ServerResponse
+from robert.protocol import JointTarget, RobTarget, Zone, as_pb_jointtarget, as_pb_robtarget, ServerResponse, Position, Orientation, ConfData, ExtJoint
 from time import sleep
 from typing import Callable
 
@@ -19,18 +19,17 @@ def server_response(func: Callable[..., bytes]) -> Callable[..., ServerResponse]
 
 
 class RobeRTClient:
-    def __init__(self, endpoint: str, timeout: int = 5000):
+    def __init__(self, ip: str, port: int, timeout: int = 5000):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
         self.socket.setsockopt(zmq.RCVTIMEO, timeout)
-        self.endpoint = endpoint
+        self.endpoint = f"tcp://{ip}:{port}"
         self.session_token: str | None = None
 
     def connect(self):
         try:
             print(f"[*] Connecting to RobeRT Middleware at {self.endpoint}...")
             self.socket.connect(self.endpoint)
-            print("[*] Connection established.")
         except Exception as e:
             raise RuntimeError(f"API ERROR: Failed to connect to {self.endpoint} - {str(e)}")
 
@@ -110,7 +109,7 @@ class RobeRTClient:
                 return response
 
             if response.task_status == pb.TaskStatus.TASK_FAILED:
-                raise RuntimeError(f"Task {task_id} failed to execute on the robot.")
+                raise RuntimeError(f"Task {task_id} failed: {response.error_message}")
 
             sleep(timeout)
 
@@ -182,4 +181,18 @@ class RobeRTClient:
     @server_response
     def release(self) -> bytes:
         req = self._create_request(pb.CommandType.RELEASE)
+        return self._request(req.SerializeToString())
+
+    @server_response
+    def move_l_offs(self, x: float, y: float, z: float) -> bytes:
+        # dummy data for target different than pos
+        target = RobTarget(trans=Position(x, y, z), rot=Orientation(0,0,0,1), robconf=ConfData(0,0,0,0), extax=ExtJoint(9e9,9e9,9e9,9e9,9e9,9e9))
+        req = self._create_request(pb.CommandType.MOVEL_OFFS, target=as_pb_robtarget(target))
+        return self._request(req.SerializeToString())
+
+    @server_response
+    def move_j_offs(self, x: float, y: float, z: float) -> bytes:
+        # dummy data for target different than pos
+        target = RobTarget(trans=Position(x, y, z), rot=Orientation(0,0,0,1), robconf=ConfData(0,0,0,0), extax=ExtJoint(9e9,9e9,9e9,9e9,9e9,9e9))
+        req = self._create_request(pb.CommandType.MOVEJ_OFFS, target=as_pb_robtarget(target))
         return self._request(req.SerializeToString())

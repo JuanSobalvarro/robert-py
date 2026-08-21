@@ -24,6 +24,7 @@ class OpMode(IntEnum):
 class ResponseStatus(IntEnum):
     SUCCESS = pb.SUCCESS
     ERROR = pb.ERROR
+    WARNING = pb.WARNING
 
 class TaskStatus(IntEnum):
     TASK_UNKNOWN = pb.TASK_UNKNOWN

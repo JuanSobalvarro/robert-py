@@ -24,6 +24,8 @@ class CommandType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     LOGOUT: _ClassVar[CommandType]
     ACQUIRE: _ClassVar[CommandType]
     RELEASE: _ClassVar[CommandType]
+    MOVEL_OFFS: _ClassVar[CommandType]
+    MOVEJ_OFFS: _ClassVar[CommandType]
 
 class Zone(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -71,6 +73,8 @@ LOGIN: CommandType
 LOGOUT: CommandType
 ACQUIRE: CommandType
 RELEASE: CommandType
+MOVEL_OFFS: CommandType
+MOVEJ_OFFS: CommandType
 FINE: Zone
 Z1: Zone
 Z5: Zone
