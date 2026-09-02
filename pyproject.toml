@@ -22,7 +22,7 @@ dependencies = [
     "protobuf>=6.33.6"
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "grpcio-tools" # compilation of proto files
 ]
