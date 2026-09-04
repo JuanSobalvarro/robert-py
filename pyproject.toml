@@ -27,7 +27,8 @@ dev = [
     "grpcio-tools" # compilation of proto files
 ]
 docs = [
-    "sphinx"
+    "sphinx",
+    "sphinx_rtd_theme",
 ]
 
 [project.urls]
