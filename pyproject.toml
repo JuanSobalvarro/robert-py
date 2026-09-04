@@ -26,6 +26,9 @@ dependencies = [
 dev = [
     "grpcio-tools" # compilation of proto files
 ]
+docs = [
+    "sphinx"
+]
 
 [project.urls]
 Homepage = "https://github.com/JuanSobalvarro/robert-py"

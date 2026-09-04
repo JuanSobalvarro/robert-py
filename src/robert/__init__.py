@@ -1,20 +1,3 @@
-__all__ = [
-    "RobeRTClient",
-    "Zone",
-    "OpMode",
-    "ResponseStatus",
-    "TaskStatus",
-    "Position",
-    "Orientation",
-    "ConfData",
-    "RobJoint",
-    "ExtJoint",
-    "RobTarget",
-    "JointTarget",
-    "RobotStatus",
-    "ServerResponse",
-]
-
 from .client import RobeRTClient
 from .protocol import (
     Zone,
@@ -31,3 +14,20 @@ from .protocol import (
     RobotStatus,
     ServerResponse
 )
+
+__all__ = [
+    "RobeRTClient",
+    "Zone",
+    "OpMode",
+    "ResponseStatus",
+    "TaskStatus",
+    "Position",
+    "Orientation",
+    "ConfData",
+    "RobJoint",
+    "ExtJoint",
+    "RobTarget",
+    "JointTarget",
+    "RobotStatus",
+    "ServerResponse",
+]
