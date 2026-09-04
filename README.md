@@ -6,7 +6,7 @@ python -m grpc_tools.protoc --proto_path=./protocol --python_out=./src/robert/ge
 
 # Generate docs
 ```bash
-sphinx-build -b html docs/source docs/build
+sphinx-build -b html docs/source docs/build/html
 ```
 
 Then to generate api docs, run:
