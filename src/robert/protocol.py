@@ -5,6 +5,14 @@ import robert.generated.protocol_pb2 as pb
 
 
 class Zone(IntEnum):
+    """
+    Represents the fly-by zone of the robot during motion.
+
+    The zone dictates how closely the robot must approach a target before continuing
+    to the next instruction. A `FINE` zone forces the robot to come to a complete
+    stop at the exact coordinates. Larger zones (e.g., `Z10`, `Z20`) allow the robot
+    to round corners, resulting in smoother and faster continuous paths.
+    """
     FINE = pb.FINE
     Z1 = pb.Z1
     Z5 = pb.Z5
@@ -15,6 +23,11 @@ class Zone(IntEnum):
 
 
 class OpMode(IntEnum):
+    """
+    Represents the current operation mode of the physical robot controller.
+
+    Note: This is read-only telemetry data.
+    """
     OP_UNDEF = pb.OP_UNDEF
     OP_AUTO = pb.OP_AUTO
     OP_MAN_PROG = pb.OP_MAN_PROG
@@ -22,11 +35,26 @@ class OpMode(IntEnum):
 
 
 class ResponseStatus(IntEnum):
+    """
+    Represents the immediate network and validation status of a server response.
+
+    This indicates whether the middleware successfully received and parsed the command.
+    It does NOT indicate if a physical robot movement has finished.
+    """
     SUCCESS = pb.SUCCESS
     ERROR = pb.ERROR
     WARNING = pb.WARNING
 
 class TaskStatus(IntEnum):
+    """
+    Represents the physical execution state of a task queued on the robot controller.
+
+    - TASK_UNKNOWN: The task ID does not exist or has expired.
+    - TASK_PENDING: The task is queued in the middleware but not yet executing on the robot.
+    - TASK_IN_PROGRESS: The physical robot is currently executing the task.
+    - TASK_COMPLETED: The robot has successfully reached the target.
+    - TASK_FAILED: The robot failed to execute the task (e.g., kinematic limit reached).
+    """
     TASK_UNKNOWN = pb.TASK_UNKNOWN
     TASK_PENDING = pb.TASK_PENDING
     TASK_IN_PROGRESS = pb.TASK_IN_PROGRESS
@@ -35,6 +63,16 @@ class TaskStatus(IntEnum):
 
 @dataclass
 class Position:
+    """
+    Represents a Cartesian position in 3D space.
+
+    Coordinates are measured in millimeters (mm) relative to the active Work Object (WObj)
+    or the robot's base frame if no custom WObj is defined.
+
+    :param x: Distance along the X-axis (mm).
+    :param y: Distance along the Y-axis (mm).
+    :param z: Distance along the Z-axis (mm).
+    """
     x: float
     y: float
     z: float
@@ -45,6 +83,18 @@ class Position:
 
 @dataclass
 class Orientation:
+    """
+    Represents the orientation of the Tool Center Point (TCP) in 3D space.
+
+    Orientation is strictly defined using unit quaternions (q1, q2, q3, q4) to avoid
+    gimbal lock. This determines the exact angle at which the end-effector approaches
+    the target position.
+
+    :param q1: Real/Scalar part of the quaternion.
+    :param q2: i vector component.
+    :param q3: j vector component.
+    :param q4: k vector component.
+    """
     q1: float
     q2: float
     q3: float
@@ -56,6 +106,16 @@ class Orientation:
 
 @dataclass
 class ConfData:
+    """
+    Represents the axis configuration data of the robot.
+
+    When multiple joint configurations can reach the same Cartesian target, ConfData
+    forces the robot to use a specific posture (e.g., elbow up vs. elbow down) to
+    prevent unpredictable movements or singularities.
+
+    Note: If you are working with an IRB 140 (Type C) and orientation does not matter
+    for your current task, the default safe configuration is usually (cf1=0, cf4=0, cf6=-1, cfx=0).
+    """
     cf1: int
     cf4: int
     cf6: int
@@ -67,6 +127,11 @@ class ConfData:
 
 @dataclass
 class RobJoint:
+    """
+    Represents the absolute angular position of the robot's six internal axes.
+
+    Values are measured in degrees.
+    """
     rax_1: float
     rax_2: float
     rax_3: float
@@ -87,6 +152,13 @@ class RobJoint:
 
 @dataclass
 class ExtJoint:
+    """
+    Represents the position of external mechanical axes synchronized with the robot controller.
+
+    This is used when the robot is mounted on a linear track or controls external rotary tables.
+    If your robotic cell does not use external axes, all values MUST be set to `9e9`, which
+    is the standard RAPID convention for "unused axis".
+    """
     eax_a: float
     eax_b: float
     eax_c: float
@@ -107,6 +179,18 @@ class ExtJoint:
 
 @dataclass
 class RobTarget:
+    """
+    Represents a complete Cartesian target definition for linear and circular movements.
+
+    A valid RobTarget completely defines where the TCP should go (trans), how the tool
+    should be rotated (rot), what posture the arm should assume (robconf), and the state
+    of any external axes (extax).
+
+    :param trans: The target XYZ coordinates (Position).
+    :param rot: The tool orientation (Orientation/Quaternion).
+    :param robconf: The specific joint posture (ConfData).
+    :param extax: Positions for external axes, use 9e9 if unused (ExtJoint).
+    """
     trans: Position
     rot: Orientation
     robconf: ConfData
@@ -132,6 +216,15 @@ class RobTarget:
 
 @dataclass
 class JointTarget:
+    """
+    Represents a complete Joint target definition for non-linear movements (MoveAbsJ).
+
+    Unlike a RobTarget, a JointTarget defines the final destination purely by the
+    angular degrees of the 6 internal motors, ignoring Cartesian space entirely.
+
+    :param robjoint: The specific angles for the 6 robot axes (RobJoint).
+    :param extjoint: Angles/Positions for external axes, use 9e9 if unused (ExtJoint).
+    """
     robjoint: RobJoint
     extjoint: ExtJoint
 
@@ -165,6 +258,18 @@ class JointTarget:
 
 @dataclass
 class RobotStatus:
+    """
+    Encapsulates all real-time telemetry gathered from the robot controller.
+
+    :param op_mode: Indicates if the controller is in Auto or Manual mode.
+    :param speed_override: The global speed percentage set on the FlexPendant.
+    :param current_speed: The active TCP translation speed (mm/s).
+    :param current_zone: The active fly-by zone configuration.
+    :param current_target: The exact Cartesian position and orientation of the TCP.
+    :param current_joint_target: The exact angular degrees of the 6 motors.
+    :param robot_time: Internal controller clock time (HH:MM:SS).
+    :param robot_date: Internal controller clock date (YYYY-MM-DD).
+    """
     op_mode: OpMode
     speed_override: float
     current_speed: float
@@ -190,6 +295,21 @@ class RobotStatus:
 
 @dataclass
 class ServerResponse:
+    """
+    The core response object returned by every API call to the RobeRT Middleware.
+
+    Because movements on physical hardware are slow, the middleware uses an asynchronous
+    task system. When you request a movement, the middleware instantly returns a
+    ServerResponse containing a `task_id` with a status of `TASK_PENDING`.
+    You must use this `task_id` to poll the server until the physical movement finishes.
+
+    :param status: Indicates if the middleware successfully received the request (SUCCESS, ERROR).
+    :param task_status: The physical execution state of the command (e.g., TASK_IN_PROGRESS).
+    :param task_id: Unique identifier for the queued physical movement. None for instant commands.
+    :param error_message: Details about what went wrong if status is ERROR.
+    :param text_payload: String data (e.g., session tokens) returned by specific commands.
+    :param robot_status: Telemetry data, populated only when calling `get_status()`.
+    """
     status: ResponseStatus
     task_status: TaskStatus
     task_id: int | None = None
@@ -222,6 +342,9 @@ class ServerResponse:
 
 
 def as_pb_robtarget(target: RobTarget | pb.RobTarget) -> pb.RobTarget:
+    """
+    Helper function to safely extract or convert a Protocol Buffer RobTarget.
+    """
     if isinstance(target, pb.RobTarget):
         return target
 
@@ -232,6 +355,9 @@ def as_pb_robtarget(target: RobTarget | pb.RobTarget) -> pb.RobTarget:
 
 
 def as_pb_jointtarget(target: JointTarget | pb.JointTarget) -> pb.JointTarget:
+    """
+    Helper function to safely extract or convert a Protocol Buffer JointTarget.
+    """
     if isinstance(target, pb.JointTarget):
         return target
 

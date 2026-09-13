@@ -22,9 +22,20 @@ def server_response(func: Callable[..., bytes]) -> Callable[..., ServerResponse]
             if not response_bytes:
                 raise RuntimeError("API ERROR: Received empty response from server")
             pb_response = pb.ServerResponse.FromString(response_bytes)
-            return ServerResponse.from_pb(pb_response)
+            response = ServerResponse.from_pb(pb_response)
         except Exception as e:
             raise RuntimeError(f"API ERROR: Failed to process server response - {str(e)}")
+
+        # check for server errors
+        if response.status == pb.ResponseStatus.ERROR:
+            raise RuntimeError(f"API ERROR: Failed to process server response - {response.error_message}")
+
+        if getattr(self, 'wait_for_all', False) and func.__name__ != 'check_task':
+            # only wait if the server actually queued a task and returned an id
+            if response.task_id is not None and response.task_status == pb.TaskStatus.TASK_PENDING:
+                return self.wait_for_task_completion(response.task_id)
+
+        return response
     return wrapper
 
 
@@ -38,7 +49,7 @@ class RobeRTClient:
 
     Also, as a suggestion, keep the timeout short (e.g. 5000ms) and use `wait_for_task_completion()` to check task status.
     """
-    def __init__(self, ip: str, port: int, timeout: int = 5000):
+    def __init__(self, ip: str, port: int, timeout: int = 5000, wait_for_all: bool = False):
         """
         Initialize the RobeRTClient with the given IP, port, and timeout.
 
@@ -56,6 +67,7 @@ class RobeRTClient:
         self.socket.setsockopt(zmq.RCVTIMEO, timeout)
         self.endpoint = f"tcp://{ip}:{port}"
         self.session_token: str | None = None
+        self.wait_for_all = wait_for_all
 
     def connect(self):
         """
@@ -193,7 +205,7 @@ class RobeRTClient:
             if response.task_status == pb.TaskStatus.TASK_FAILED:
                 raise RuntimeError(f"Task {task_id} failed: {response.error_message}")
 
-            sleep(timeout)
+            # sleep(timeout)
 
     @server_response
     def movel(self, target: RobTarget | pb.RobTarget) -> bytes:
