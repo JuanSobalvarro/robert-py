@@ -15,4 +15,10 @@ cd docs/
 make html
 ```
 
+# Deploying
+```bash
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin vX.Y.Z
+```
+
 # Compiling package
