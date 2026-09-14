@@ -4,15 +4,21 @@ build-backend = "hatchling.build"
 
 [project]
 name = "robert-py"
-version = "1.4.3"
+version = "1.5.0"
 authors = [
     { name = "Juan Sobalvarro", email = "sobalvarrog.juans@gmail.com" },
 ]
 description = "A Python library to interact with RobeRT server."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "License :: OSI Approved :: MIT License",
 ]
 license = "MIT"
 license-files = ["LICENSE"]
@@ -24,7 +30,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "grpcio-tools" # compilation of proto files
+    "grpcio-tools", # compilation of proto files
+    "pytest",
 ]
 docs = [
     "sphinx",
@@ -32,7 +39,7 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/JuanSobalvarro/robert-py"
+Homepage = "https://juansobalvarro.github.io/robert-py/"
 Repository = "https://github.com/JuanSobalvarro/robert-py"
 
 [tool.hatch.build.targets.wheel]

@@ -19,7 +19,7 @@ def server_response(func: Callable[..., bytes]) -> Callable[..., ServerResponse]
     def wrapper(self, *args, **kwargs) -> ServerResponse:
         try:
             response_bytes = func(self, *args, **kwargs)
-            if not response_bytes:
+            if response_bytes is None:
                 raise RuntimeError("API ERROR: Received empty response from server")
             pb_response = pb.ServerResponse.FromString(response_bytes)
             response = ServerResponse.from_pb(pb_response)
