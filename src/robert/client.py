@@ -1,3 +1,4 @@
+from __future__ import annotations
 import zmq
 from robert.generated import protocol_pb2 as pb
 from robert.protocol import JointTarget, RobTarget, Zone, as_pb_jointtarget, as_pb_robtarget, ServerResponse, Position, Orientation, ConfData, ExtJoint
