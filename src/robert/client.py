@@ -151,7 +151,6 @@ class RobeRTClient:
         pb_response = pb.ServerResponse.FromString(response_bytes)
         response = ServerResponse.from_pb(pb_response)
 
-        # Guardar el token en el estado de la clase si fue exitoso
         if response.status == pb.ResponseStatus.SUCCESS:
             self.session_token = response.text_payload
             print("[*] Login successful. Session token acquired.")
