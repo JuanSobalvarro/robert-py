@@ -14,3 +14,5 @@ Then to generate api docs, run:
 cd docs/
 make html
 ```
+
+# Compiling package

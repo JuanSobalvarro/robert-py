@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import math
 from enum import IntEnum
 
 import robert.generated.protocol_pb2 as pb
@@ -73,9 +74,9 @@ class Position:
     :param y: Distance along the Y-axis (mm).
     :param z: Distance along the Z-axis (mm).
     """
-    x: float
-    y: float
-    z: float
+    x: float = 500.0
+    y: float = 0.0
+    z: float = 700.0
 
     def to_pb(self) -> pb.Position:
         return pb.Position(x=self.x, y=self.y, z=self.z)
@@ -95,10 +96,23 @@ class Orientation:
     :param q3: j vector component.
     :param q4: k vector component.
     """
-    q1: float
-    q2: float
-    q3: float
-    q4: float
+    q1: float = 0.707
+    q2: float = 0.0
+    q3: float = 0.707
+    q4: float = 0.0
+
+    def __post_init__(self):
+            """
+            Validates the quaternion on the client side. The norm of a unit quaternion
+            must always be 1.0. We use a small tolerance to allow for truncated values
+            like 0.707 (instead of 0.707106...).
+            """
+            norm = math.sqrt(self.q1**2 + self.q2**2 + self.q3**2 + self.q4**2)
+            if not math.isclose(norm, 1.0, abs_tol=1e-3):
+                raise ValueError(
+                    f"Invalid quaternion: The norm must be 1.0, but got {norm:.4f}. "
+                    f"Values: [{self.q1}, {self.q2}, {self.q3}, {self.q4}]"
+                )
 
     def to_pb(self) -> pb.Orientation:
         return pb.Orientation(q1=self.q1, q2=self.q2, q3=self.q3, q4=self.q4)
@@ -116,28 +130,25 @@ class ConfData:
     Note: If you are working with an IRB 140 (Type C) and orientation does not matter
     for your current task, the default safe configuration is usually (cf1=0, cf4=0, cf6=-1, cfx=0).
     """
-    cf1: int
-    cf4: int
-    cf6: int
-    cfx: int
+    cf1: int = 0
+    cf4: int = 0
+    cf6: int = -1
+    cfx: int = 0
 
     def to_pb(self) -> pb.ConfData:
         return pb.ConfData(cf1=self.cf1, cf4=self.cf4, cf6=self.cf6, cfx=self.cfx)
-
 
 @dataclass
 class RobJoint:
     """
     Represents the absolute angular position of the robot's six internal axes.
-
-    Values are measured in degrees.
     """
-    rax_1: float
-    rax_2: float
-    rax_3: float
-    rax_4: float
-    rax_5: float
-    rax_6: float
+    rax_1: float = 0.0
+    rax_2: float = 0.0
+    rax_3: float = 0.0
+    rax_4: float = 0.0
+    rax_5: float = 0.0
+    rax_6: float = 0.0
 
     def to_pb(self) -> pb.RobJoint:
         return pb.RobJoint(
@@ -159,12 +170,12 @@ class ExtJoint:
     If your robotic cell does not use external axes, all values MUST be set to `9e9`, which
     is the standard RAPID convention for "unused axis".
     """
-    eax_a: float
-    eax_b: float
-    eax_c: float
-    eax_d: float
-    eax_e: float
-    eax_f: float
+    eax_a: float = 9e9
+    eax_b: float = 9e9
+    eax_c: float = 9e9
+    eax_d: float = 9e9
+    eax_e: float = 9e9
+    eax_f: float = 9e9
 
     def to_pb(self) -> pb.ExtJoint:
         return pb.ExtJoint(
@@ -191,12 +202,49 @@ class RobTarget:
     :param robconf: The specific joint posture (ConfData).
     :param extax: Positions for external axes, use 9e9 if unused (ExtJoint).
     """
-    trans: Position
-    rot: Orientation
-    robconf: ConfData
-    extax: ExtJoint
+    trans: Position | list[float] | tuple[float, ...] = field(default_factory=Position)
+    rot: Orientation | list[float] | tuple[float, ...] = field(default_factory=Orientation)
+    robconf: ConfData | list[float] | tuple[float, ...] = field(default_factory=ConfData)
+    extax: ExtJoint | list[float] | tuple[float, ...] = field(default_factory=ExtJoint)
+
+    def __setattr__(self, name, value):
+        """
+        Intercepts assignments. If the user assigns a list or tuple to 'rot',
+        it automatically converts it into an Orientation object and validates it.
+        """
+        if name == "trans" and isinstance(value, (list, tuple)):
+            if len(value) != 3:
+                raise ValueError("Position list must have exactly 3 elements: [x, y, z]")
+            value = Position(*value)
+
+        if name == "rot" and isinstance(value, (list, tuple)):
+            if len(value) != 4:
+                raise ValueError("Orientation list must have exactly 4 elements: [q1, q2, q3, q4]")
+            value = Orientation(*value)
+
+        if name == "robconf" and isinstance(value, (list, tuple)):
+            if len(value) != 4:
+                raise ValueError("ConfData list must have exactly 4 elements: [cf1, cf4, cf6, cfx]")
+            value = ConfData(*value)
+
+        if name == "extax" and isinstance(value, (list, tuple)):
+            if len(value) != 3:
+                raise ValueError("ExtJoint list must have exactly 3 elements: [e1, e2, e3]")
+            value = ExtJoint(*value)
+
+        super().__setattr__(name, value)
 
     def to_pb(self) -> pb.RobTarget:
+
+        if not isinstance(self.trans, Position):
+            raise TypeError("trans must be a Position object")
+        if not isinstance(self.rot, Orientation):
+            raise TypeError("rot must be an Orientation object")
+        if not isinstance(self.robconf, ConfData):
+            raise TypeError("robconf must be a ConfData object")
+        if not isinstance(self.extax, ExtJoint):
+            raise TypeError("extax must be an ExtJoint object")
+
         return pb.RobTarget(
             trans=self.trans.to_pb(),
             rot=self.rot.to_pb(),
@@ -205,7 +253,7 @@ class RobTarget:
         )
 
     @classmethod
-    def from_pb(cls, pb_target: pb.RobTarget) -> "RobTarget":
+    def from_pb(cls, pb_target: pb.RobTarget) -> RobTarget:
         return cls(
             trans=Position(x=pb_target.trans.x, y=pb_target.trans.y, z=pb_target.trans.z),
             rot=Orientation(q1=pb_target.rot.q1, q2=pb_target.rot.q2, q3=pb_target.rot.q3, q4=pb_target.rot.q4),
@@ -225,17 +273,33 @@ class JointTarget:
     :param robjoint: The specific angles for the 6 robot axes (RobJoint).
     :param extjoint: Angles/Positions for external axes, use 9e9 if unused (ExtJoint).
     """
-    robjoint: RobJoint
-    extjoint: ExtJoint
+    robjoint: RobJoint | list[float] | tuple[float, ...] = field(default_factory=RobJoint)
+    extjoint: ExtJoint | list[float] | tuple[float, ...] = field(default_factory=ExtJoint)
+
+    def __setattr__(self, name, value) -> None:
+
+        if isinstance(value, (list, tuple)):
+            value = RobJoint(*value) if name == "robjoint" else ExtJoint(*value)
+
+        if not isinstance(value, (RobJoint, ExtJoint)):
+            raise TypeError(f"Invalid type for {name}: {type(value)}")
+
+        super().__setattr__(name, value)
 
     def to_pb(self) -> pb.JointTarget:
+
+        if not isinstance(self.robjoint, RobJoint):
+            raise TypeError(f"Invalid type for robjoint: {type(self.robjoint)}")
+        if not isinstance(self.extjoint, ExtJoint):
+            raise TypeError(f"Invalid type for extjoint: {type(self.extjoint)}")
+
         return pb.JointTarget(
             robjoint=self.robjoint.to_pb(),
             extjoint=self.extjoint.to_pb(),
         )
 
     @classmethod
-    def from_pb(cls, pb_joint_target: pb.JointTarget) -> "JointTarget":
+    def from_pb(cls, pb_joint_target: pb.JointTarget) -> JointTarget:
         return cls(
             robjoint=RobJoint(
                 rax_1=pb_joint_target.robjoint.rax_1,
@@ -280,7 +344,7 @@ class RobotStatus:
     robot_date: str
 
     @classmethod
-    def from_pb(cls, pb_status: pb.RobotStatus) -> "RobotStatus":
+    def from_pb(cls, pb_status: pb.RobotStatus) -> RobotStatus:
         return cls(
             op_mode=OpMode(pb_status.op_mode),
             speed_override=pb_status.speed_override,
@@ -318,7 +382,7 @@ class ServerResponse:
     robot_status: RobotStatus | None = None
 
     @classmethod
-    def from_pb(cls, pb_response: pb.ServerResponse) -> "ServerResponse":
+    def from_pb(cls, pb_response: pb.ServerResponse) -> ServerResponse:
         status_obj = None
         text_content = None
 
